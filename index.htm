@@ -79,7 +79,7 @@
       </tbody></table>
    </div>
    <div style="margin-left:10px; padding:3px;">
-      <span id="spanSelectedCount">0</span> resources selected
+      <span id="resourcesSelectedCounter">0</span> resources selected
       <span id="resourcesSelected" style="margin-left:10px"></span>
    </div>
    </div>
@@ -292,14 +292,11 @@
     var el = $(this);
 
    if(el.is(':checked')){
-      console.log('checked');
       selectedResourceUuids.push(el.val());
       selectedResourceNames.push(el.attr('title'));
    }
    else{
-      console.log('unchecked');
-      selectedResourceUuids.pop(el.val());
-      selectedResourceNames.pop(el.attr('title'));
+      
       for( var i = 0; i < selectedResourceUuids.length; i++){ 
         if ( selectedResourceUuids[i] === el.val()) {
          selectedResourceUuids.splice(i, 1); 
@@ -312,7 +309,8 @@
 
 }
    }
-   console.log(selectedResourceNames);
+   
+   $('#resourcesSelectedCounter').html(selectedResourceUuids.length);
    $('#resourcesSelected').html(selectedResourceNames.join(', '));
 });
    
