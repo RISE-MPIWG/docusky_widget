@@ -62,7 +62,7 @@
    <div style="padding:5px;">
       <table>
       <tbody><tr><td colspan="2">
-         <b>1. Select the Collection:</b> <select id='collectionsList'><option>Select a Collection</option></select><br>
+         <b>1. Select a Collection:</b> <select id='collectionsList'><option>Select a Collection</option></select><br>
       </td></tr>
       <tr><td width="25%">
          書名過濾: <input id="inputBookFilter" type="text" size="6" autocomplete="off">
@@ -79,8 +79,8 @@
       </tbody></table>
    </div>
    <div style="margin-left:10px; padding:3px;">
-      <span id="spanSelectedCount">0</span> books selected
-      <span id="spanTextTitleSelected" style="margin-left:10px"></span>
+      <span id="spanSelectedCount">0</span> resources selected
+      <span id="resourcesSelected" style="margin-left:10px"></span>
    </div>
    </div>
    <div class="contentArea">
@@ -252,7 +252,6 @@
    function displayCollectionSelect(collections){
       $.each(collections, function( index, collection ) {
         option = "<option id='"+ collection['uuid'] +"'>"+ collection['name'] +"</option>";
-        console.log(option);
         $('#collectionsList').append(option);
       });
    }
@@ -270,16 +269,52 @@
       rise.collections.resources(collectionUuid)
         .then(function(response){
           resources = response.body;
-          console.log(resources);
           displayResourcesTable(resources);
+          checkSelectedResource();
         })
         .catch(function(error){
           console.log(error.response.body);
           console.log(error.status);
         });
-      
    });
-   
+
+   var selectedResourceUuids = [];
+   var selectedResourceNames = [];
+
+   function checkSelectedResource() {
+      $.each(selectedResourceUuids, function( index, uuid ) {
+        var checkbox = $("input[type='checkbox'][value='"+uuid+"']");
+        checkbox.attr("checked","checked");        
+      });
+   }
+
+   $(document.body).on('change', 'input[type=checkbox]', function () {
+    var el = $(this);
+
+   if(el.is(':checked')){
+      console.log('checked');
+      selectedResourceUuids.push(el.val());
+      selectedResourceNames.push(el.attr('title'));
+   }
+   else{
+      console.log('unchecked');
+      selectedResourceUuids.pop(el.val());
+      selectedResourceNames.pop(el.attr('title'));
+      for( var i = 0; i < selectedResourceUuids.length; i++){ 
+        if ( selectedResourceUuids[i] === el.val()) {
+         selectedResourceUuids.splice(i, 1); 
+      }
+      for( var i = 0; i < selectedResourceNames.length; i++){ 
+        if ( selectedResourceNames[i] === el.attr('title')) {
+         selectedResourceNames.splice(i, 1); 
+      }
+   }
+
+}
+   }
+   console.log(selectedResourceNames);
+   $('#resourcesSelected').html(selectedResourceNames.join(', '));
+});
    
    $(document).ready(function() {
       DocuSkyObj = docuskyManageDbListSimpleUI;
