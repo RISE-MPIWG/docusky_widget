@@ -46,24 +46,46 @@
                   return {
                      selectedCollection: null,
                      resources: [],
-                     selectedResources: []
+                     selectedResources: [],
+                     currentPage: 1,
+                     totalResources: 0,
+                     perPage: 25,
+                     filter: ""
                   }
                },
                watch: {
                   selectedCollection: function(uuid, oldUuid) {
-                     console.log(uuid);
-                     this.getResources(uuid);
+                     this.getResources(uuid,this.currentPage, '');
+                     this.currentPage = 1;
+                  },
+                  filter: function(filterValue, oldUuid) {
+                     this.currentPage = 1;
+                     this.getResources(this.selectedCollection,this.currentPage, filterValue);
+                  }
+               },
+               computed: {
+                  pageCount(){
+                     return Math.ceil(this.totalResources/this.perPage);
                   }
                },
                methods: {
-                  getResources(uuid) {
+                  nextPage() {
+                     this.currentPage += 1;
+                     this.getResources(this.selectedCollection, this.currentPage);
+                  },
+                  prevPage() {
+                     this.currentPage -= 1;
+                     this.getResources(this.selectedCollection, this.currentPage);
+                  },
+                  getResources(uuid, page, filter) {
                      if (uuid == 0) {
                         this.resources = [];
                         return;
                      }
-                     rise.collections.resources(uuid)
+                     rise.collections.resources(uuid, {page: page, filter: filter})
                         .then(response => {
                            this.resources = response.body;
+                           this.totalResources = response.headers['x-total'];
                         })
                         .catch(error => {
                            console.log(error.response.body);
@@ -75,6 +97,7 @@
          })
       </script>   
       <style type="text/css">
+         [v-cloak] {display: none}
          body { Verdana, Arial, Helvetica, sans-serif, times, Microsoft JhengHei, Heiti TC, PMingLiU, PMingLiu-ExtB, SimSun, SimSun-ExtB, HanaMinA, HanaMinB;
                margin:0; line-height:160%; }
          div.headerBar { background-color:rgb(41,60,65); color:white; padding:8px; text-align: center; }
@@ -140,25 +163,25 @@
                </tr>
             <tr>
                <td width="25%">
-               書名過濾: <input id="inputBookFilter" type="text" size="6" autocomplete="off">
+               書名過濾: <input id="inputBookFilter" type="text" size="6" autocomplete="off" v-model="filter">
                </td>
                <td>
-                  <div id="paginationContainer">
+                  <div id="paginationContainer" v-if="selectedCollection" v-cloak>
                      <div class="paginationjs">
                         <div class="paginationjs-pages">
                            <ul>
-                              <li class="paginationjs-page J-paginationjs-page" data-num="1">
-                                 <a href='#'>&lt;</a>
+                              <li class="paginationjs-page J-paginationjs-page">
+                                 <button @click="prevPage" :disabled="currentPage === 1">&lt;</a>
                               </li>
-                              <li class="paginationjs-page J-paginationjs-page" data-num="2">
-                                 <a href='#'>
+                              <li class="paginationjs-page J-paginationjs-page">
+                                 <button @click="nextPage" :disabled="currentPage >= pageCount">
                                     &gt;
                                  </a>
                               </li>
                            </ul>
                         </div>
                         <div class="paginationjs-nav J-paginationjs-nav">
-                           <span style="color: #f00">1</span> / 32 pages, 31732 entries
+                           <span style="color: #f00">{{currentPage}}</span> / {{pageCount}} pages, {{totalResources}} entries
                         </div>
                      </div>
                   </div>   
@@ -170,11 +193,11 @@
          <div id="messageOverlay" style="position: absolute; top: 180px; left: 25%; width: 50%; border: 3px double grey; border-radius: 4px; padding: 18px; font-size: 125%; background-color: rgb(255, 255, 153); z-index: 100; text-align: center; display: none;">載入書名清單...</div>
             <table id="resourcesList" width="100%">
                <tbody>
-                  <tr v-for="resource in resources"><td v-bind='resource'><label><input type='checkbox' v-model="selectedResources" :id=resource.uuid :value=resource.name>{{resource.name}}</label></td></tr>
+                  <tr v-cloak v-for="resource in resources"><td v-bind='resource'><label><input type='checkbox' v-model="selectedResources" :id=resource.uuid :value=resource.name>{{resource.name}}</label></td></tr>
                </tbody>
             </table>
          </div>
-         <div style="margin-left:10px; padding:3px;">
+         <div style="margin-left:10px; padding:3px;" v-cloak>
             <span>{{selectedResources.length}}</span> resources selected
             <span style="margin-left:10px">{{selectedResources.join(', ')}}</span>
          </div>
