@@ -51,8 +51,7 @@
                      currentPage: 1,
                      totalResources: 0,
                      perPage: 25,
-                     filter: "",
-                     resourcesForExport: {}
+                     filter: ""
                   }
                },
                watch: {
@@ -71,8 +70,8 @@
                   }
                },
                methods: {
-                  buildXML(){
-                     console.log('build');
+                  buildXML(resources){
+                     console.log(resources);
                      var xw = new XMLWriter('UTF-8');
                      xw.formatting = 'indented';//add indentation and newlines
                      xw.indentChar = ' ';//indent with spaces
@@ -80,38 +79,17 @@
 
                      xw.writeStartDocument( );
                      xw.writeDocType('xml version="1.0"');
-                     xw.writeStartElement( 'ThdlPrototypeExport' );
+                        xw.writeStartElement( 'ThdlPrototypeExport' );
+                           for(const resource of resources ) {
+                              xw.writeComment('document');
+                              xw.writeStartElement('document');
+                                 xw.writeAttributeString( 'uuid', resource['uuid']);
+                                 for(const section of resource['sections']){
+                                    xw.writeElementString('paragraph', section['content_units'].map(cu => cu.content).join('<br>'));
+                                 }
 
-                     xw.writeComment('button');
-                     xw.writeStartElement('item');
-                        xw.writeAttributeString( 'id', 'item-1');
-                        xw.writeAttributeString( 'enabled', 'true' );
-                        xw.writeStartElement( 'code');
-                           xw.writeCDATA( '<button>Save</button>' );
-                        xw.writeEndElement();
-                        xw.writeElementString('description', 'a save button');
-                     xw.writeEndElement();
-
-                     xw.writeComment('image');
-                     xw.writeStartElement('item');
-                        xw.writeAttributeString( 'id', 'item-2');
-                        xw.writeAttributeString( 'enabled', 'false' );
-                        xw.writeStartElement( 'code');
-                           xw.writeCDATA( '<img src="photo.gif" alt="me" />' );
-                        xw.writeEndElement();
-                        xw.writeElementString('description', 'a pic of myself!');
-                     xw.writeEndElement();
-
-                     xw.writeComment('link');
-                     xw.writeStartElement('item');
-                        xw.writeAttributeString( 'id', 'item-3');
-                        xw.writeAttributeString( 'enabled', 'true' );
-                        xw.writeStartElement( 'code');
-                           xw.writeCDATA( '<a href="http://google.com">Google</a>' );
-                        xw.writeEndElement();
-                        xw.writeElementString('description', 'a link to Google');
-                     xw.writeEndElement();
-
+                              xw.writeEndElement();
+                     }
                      xw.writeEndElement();
                      xw.writeEndDocument();
                      var xml = xw.flush();
@@ -119,29 +97,40 @@
                      console.log(xml);        
                   },
                   async buildJson() {
-                     this.selectedResources.forEach((resource, resourceIndex) => {
-                        resource['sections'] = []
-                        rise.resources.sections(resource.uuid, {per_page: 6000})
-                        .then(response => {
-                           sections = response.body;
-                           sections.forEach((section, index) => {
-                             section['content_units'] = []
-                             rise.sections.contentUnits(section.uuid, {per_page: 6000})
-                             .then(response => {
-                                content_units = response.body;
-                                section['content_units'] = content_units;
-                                return resource['sections'].push(section);
-                              }).then(response => {
-                                 if (!(resource.uuid in this.resourcesForExport)){
-                                   this.resourcesForExport[resource.uuid] = resource;
-                                 }
-                                 if((this.selectedResources.length == (resourceIndex +1)) && (sections.length == index +1) ) {
-                                    this.buildXML();
-                                 }
-                              });
-                           });
-                        });
-                     });
+                     var promises = [];
+                     var tempResources = [];
+                     for(const resource of this.selectedResources) {
+                        resourceForExport = {};
+                        resourceForExport['name'] = resource['name'];
+                        resourceForExport['uuid'] = resource['uuid'];
+                        resourceForExport['sections'] = [];
+                        promises.push(await rise.resources.sections(resource.uuid, {per_page: 6000}).then(response => {
+                           resourceForExport['sections'] = response.body;
+                           tempResources.push(resourceForExport);
+                        }));
+                     }
+                     await Promise.all(promises);
+                     promises = [];
+                     resourcesMap = [];
+                     for(const resource of tempResources) {
+                        resourceMap = {};
+                        resourceMap['uuid'] = resource.uuid;
+                        resourceMap['name']= resource.name;
+                        resourceMap['sections'] = [];
+                        for(const section of resource['sections']) {
+                           tempSection = {};
+                           tempSection['name'] = section['name'];
+                           tempSection['uuid'] = section['uuid'];
+                           tempSection['content_units'] = [];
+                           promises.push(await rise.sections.contentUnits(section.uuid, {per_page: 6000}).then(response => {
+                           tempSection['content_units'] = response.body;
+                           resourceMap['sections'].push(tempSection);
+                           }));
+                        }
+                        resourcesMap.push(resourceMap);
+                     }
+                     await Promise.all(promises);
+                     this.buildXML(resourcesMap);
                   },
                   nextPage() {
                      this.currentPage += 1;
