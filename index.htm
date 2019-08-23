@@ -22,14 +22,8 @@
                DocuSkyObj.manageDbList(e);
             });
             
-            
-            $("").click(function(e) {
-               console.log('click');
-               //
-            });
-
             Vue.component('selectCollection', {
-               template: `<select v-bind:value="value" @input="$emit('input', $event.target.value)"><option value='0'>Select a Collection</option><option v-for="collection in collections" v-bind:value="collection.uuid">{{ collection["name"] }}</option></select>`,
+               template: `<select v-bind:value="value" @input="$emit('input', $event.target.value)"><option value='0'>Filter by Collection</option><option v-for="collection in collections" v-bind:value="collection.uuid">{{ collection["name"] }}</option></select>`,
                props: {
                   value: String,
                   collections: Array
@@ -72,6 +66,7 @@
                      collections: [],
                      selectedCollection: '0',
                      resourceSearchString: '',
+                     filename: 'DefaultXml',
                      resources: [],
                      selectedResources: [],
                      resourcesForExport: [],
@@ -83,9 +78,9 @@
                },
                watch: {
                   selectedCollection: function(uuid, oldUuid) {
-                     this.getResources(uuid,this.currentPage, '');
                      this.currentPage = 1;
                      this.filter = '';
+                     this.getResources(uuid,this.currentPage, '');
                   },
                   filter: function(filterValue, oldUuid) {
                      this.currentPage = 1;
@@ -103,22 +98,26 @@
                      return this.resourcesForExport.length;
                   },
                   currentCollectionName(){
-                     const el =  this.collections.find(c => c.uuid==this.selectedCollection)
-                     if(el){
-                        return el.name
-                     }
+                     getCollectionName(this.selectedCollection.uuid);
                   }
                },
                created(){
                   this.getCollections();
+                  this.getResources();
 
                },
                methods: {
+                  getCollectionName(uuid){
+                     const el =  this.collections.find(c => c.uuid==uuid)
+                     if(el){
+                        return el.name
+                     }
+                  },
                   removeSelectedResource(index) {
                     this.selectedResources.splice(index, 1);
                   },
                   async getCollections() {
-                     rise.collections.all()
+                     rise.collections.all({per_page: 6000})
                         .then(response => {
                         this.collections = response.body;
                      })
@@ -147,7 +146,7 @@
                               for(const resource of resources ) {
                                  xw.writeComment('document');
                                  xw.writeStartElement('document');
-                                    xw.writeElementString('corpus', resource.collectionName);
+                                    xw.writeElementString('corpus', this.getCollectionName(resource.collectionUuid));
                                     xw.writeAttributeString( 'uuid', resource['uuid']);
                                     xw.writeAttributeString( 'filename', resource['name']);
                                     for(const section of resource['sections']){
@@ -155,9 +154,7 @@
                                           xw.writeElementString('paragraph', content_unit['content']);
                                        }
                                     }
-
                                  xw.writeEndElement();
-                              
                               }
                            xw.writeEndElement();
                      xw.writeEndElement();
@@ -165,7 +162,7 @@
                      var xml = xw.flush();
                      xw.close();
                      var blob = new Blob([xml], {type: "text/plain;charset=utf-8"});
-                     saveAs(blob, "DefaultExport.xml");
+                     saveAs(blob, this.filename + '.xml');
                      this.reInit();      
                   },
                   async buildJson() {
@@ -184,8 +181,6 @@
 
                         // sol 1 :
                         resourceMap = { ...resource, sections: [] };
-                        console.log(resourceMap);
-
                         for(const section of resource['sections']) {
                            tempSection = {};
                            tempSection['name'] = section['name'];
@@ -212,7 +207,7 @@
                      this.currentPage -= 1;
                      this.getResources(this.selectedCollection, this.currentPage);
                   },
-                  getResources(uuid, page, filter) {
+                  getResources(uuid = '', page, filter) {
                      this.resources = [];
 
                      if (uuid == 0) {
@@ -226,7 +221,7 @@
                         .then(response => {
                            resources = response.body;
                            for(const resource of resources) {
-                              var tempResource = {...resource, collectionName: this.currentCollectionName};
+                              var tempResource = {...resource, collectionUuid: this.selectedCollection};
                               this.resources.push(tempResource);
                            }
                            this.totalResources = response.headers['x-total'];
@@ -339,7 +334,6 @@
          <tbody>
             <tr>
                   <td colspan="2">
-                  <b>1. Select a Collection:</b>
                   <select-collection v-model="selectedCollection" :collections="collections"></select-collection>
                   </td>
                </tr>
@@ -378,7 +372,7 @@
          <div style="margin-left:10px; padding:3px;" v-cloak>
             <span>{{selectedResources.length}}</span> resources selected
             <span style="margin-left:10px">
-               <span class="bookTitle" v-for="(resource, index) in selectedResources" :key='resource.id'>{{resource.collectionName}} > {{resource.name}}&nbsp;<button class="remove-button" @click="removeSelectedResource(index)">x</button></span>
+               <span class="bookTitle" v-for="(resource, index) in selectedResources" :key='resource.id'>{{getCollectionName(resource.collectionUuid)}} > {{resource.name}}&nbsp;<button class="remove-button" @click="removeSelectedResource(index)">x</button></span>
             </span>
          </div>
          </div>
@@ -389,7 +383,7 @@
             -->
             <hr>
             <b>2. 將 DocuXml 儲存在本地硬碟</b><br>
-         輸出的建庫檔名：<input type="text" id="outFilename" placeholder="DefaultExport.xml" value="" size="45" autocomplete="off">
+         輸出的建庫檔名：<input type="text" id="outFilename" v-model="filename" placeholder="Export File Name" size="45" autocomplete="off">
             <button id="downloadAndSave" @click="buildJson" :disabled="selectedResourcesCount < 1">點我下載並儲存</button>
             <progress-bar :current='resourcesForExportCount' :goal='selectedResourcesCount'></progress-bar>
          </div>
