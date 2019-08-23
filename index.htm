@@ -162,7 +162,11 @@
                      var xml = xw.flush();
                      xw.close();
                      var blob = new Blob([xml], {type: "text/plain;charset=utf-8"});
-                     saveAs(blob, this.filename + '.xml');
+                     var filename = this.filename;
+                     if(filename == '') {
+                        filename = "DefaultXML";
+                     }
+                     saveAs(blob, filename + '.xml');
                      this.reInit();      
                   },
                   async buildJson() {
