@@ -147,12 +147,14 @@
                                  xw.writeStartElement('document');
                                     xw.writeElementString('corpus', this.getCollectionName(resource.collectionUuid));
                                     xw.writeAttributeString( 'uuid', resource['uuid']);
-                                    xw.writeAttributeString( 'filename', resource['name']);
+                                    xw.writeAttributeString( 'filename', resource['uuid']);
+                                    xw.writeStartElement('doc_content');
                                     for(const section of resource['sections']){
                                        for(const content_unit of section['content_units']) {
                                           xw.writeElementString('paragraph', content_unit['content']);
                                        }
                                     }
+                                    xw.writeEndElement();
                                  xw.writeEndElement();
                               }
                            xw.writeEndElement();
