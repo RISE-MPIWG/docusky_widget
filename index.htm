@@ -14,7 +14,6 @@
       <style id="dsw-simplecomboui">
       div.dsw-container { position:absolute; border:#4F4F4F solid 3px; background-color:#EFEFEF; border-radius:4px; display:inline-block; font-family: "Arial","MingLiU"; font-size: 16px; z-index:1001 }div.dsw-titleBar { background-color:#4F4F4F; color:white; z-index:1001; padding: 6px; line-height: 16px; }div.dsw-containerContent { padding: 6px; overflow-x:hidden; overflow-y:auto; font-size:medium; z-index:1001 }.dsw-titleBar table,.dsw-containerContent table { width: 100%; line-height:1.3em; border-collapse: collapse; border-spacing:0; }table.dsw-tableDbCorpuslist { width:100%; margin-right: 16px; border-collapse: collapse; border-spacing: 0; font-size:medium; line-height:1.3em; color:#2F2F3F; }tr.dsw-tr-dbcorpuslist:nth-child(even) { background: #DFDFDF; line-height:1.3em; }tr.dsw-tr-dbcorpuslist:nth-child(odd)  { background: #FFFFFF; line-height:1.3em; }.dsw-titleContainer { width: 60%; padding: 0; }.dsw-closeContainer { position: relative; text-align: right; direction: rtl; padding: 0; }.dsw-titlename { display: inline-block; line-height: 16px; white-space: nowrap; }.dsw-btn-docusky { position: absolute; color:#2F2F2F; background-color:#EFEFEF; border-radius: 3px; font-size: 0.75rem; line-height: 0.75rem; padding: 4px; margin: 0 24px 0 0; cursor: pointer; }.dsw-btn-docusky:hover { background-color:#BFBFBF; color:#96438A; }.dsw-btn-docusky:active { background-color:#BFBFBF; color:#96438A; }.dsw-btn-close { display: inline-block; line-height: 16px; cursor: pointer; }.dsw-btn-close:hover { background-color:#BFBFBF; color:#96438A; }.dsw-btn-close:active { background-color:#BFBFBF; color:#96438A; }.dsw-td-dbcorpuslist { vertical-align: middle; padding: 0.25rem;}.dsw-td-dbcorpuslist-num { text-align: right;}.dsw-displaynameContainer { display: inline-block; width: 50px; white-space: nowrap; overflow: visible; margin: 0 72px 0 0; }.dsw-displayname { display: inline-block; direction: ltr; }.dsw-btn-logout { position: absolute; right: 0; top: -2px; color:#2F2F2F; background-color:#EFEFEF; border-radius: 3px; font-size: 0.75rem; line-height: 0.75rem; padding: 4px; margin: 0 24px 0 0; cursor: pointer; }.dsw-btn-logout:hover { background-color:#BFBFBF; color:#96438A; }.dsw-btn-logout:active { background-color:#BFBFBF; color:#96438A; }.dsw-overlay { display: none; position: absolute; background-color: #AAAAAA; opacity: 0.5; z-index: 1002; height: 100%; width: 100%; }input[type="text"].dsw-userinput,input[type="password"].dsw-userinput { box-sizing: content-box; padding: 2px 8px; border: 1px solid grey; border-radius: 2px; font-size: 14px; height: 20px; width: 150px; }.dsw-td-dslogin { padding: 0; height: 1.75rem; vertical-align: middle; }.dsw-logintitle { padding-right: 6px; }.dsw-loginsubmit { direction: rtl; }.dsw-loginmsg { padding: 0; color: red; font-size: 12px; font-weight: bold; }table.dsw-filenameList { width: 100%; margin-right: 16px; border-collapse: collapse; border-spacing: 0; line-height: 1.25; }.dsw-filenameList td { padding: 0.25rem; vertical-align: top; white-space: nowrap; }.dsw-filenameList-id { text-align: right; }.dsw-filename-download,.dsw-filename.delete { text-align: center; }.dsw-filenameList-category,.dsw-filenameList-path { text-align: left; overflow-x: hidden; text-overflow: ellipsis; }.dsw-filenameList-id {}.dsw-filenameList-download,.dsw-filenameList-delete { width: 45px; max-width: 45px; text-align: center; }.dsw-filenameList-category { font-weight: bold; min-width: 120px; max-width: 150px; }.dsw-filenameList-path { min-width: 450px; max-width: 550px; }.table.dsw-uploadfile{ width: 100%; border-collapse: collapse; border-spacing: 0; }.dsw-uploadfile td { padding: 0; }.dsw-td-dbList { padding: 0.25rem; }.dsw-td-dbList-dbname,.dsw-td-dbList-corpusnames{ text-align:left; border:1px solid #5C5C5C; }.dsw-td-dbList-delete{ text-align: center;  border:1px solid #5C5C5C; }.dsw-td-dbList-dbname{ font-weight:600; min-width: 100px; max-width:180px; word-wrap: break-word; word-break: break-all; }.dsw-td-dbList-corpusnames{ min-width: 450px; max-width: 550px; }.dsw-td-dbList-delete{ min-width:40px; max-width: 60px; white-space: nowrap; }.dsw-dbList-corpusnames-corpusname { display: inline-block; vertical-align: middle; white-space: nowrap; max-width: 250px; overflow-x: hidden; text-overflow: ellipsis; }.dsw-uploadprogressbar { display: none; box-sizing: border-box; height: 20px; width: 100%; margin: 0; padding: 0; border: 1px solid #515F6B; border-radius: 3px; overflow: hidden; background-color: #AFB9C3; }.dsw-uploadprogressbar-progress { display: block; height: 100%; margin: 0; padding: 0; border: 0; background-color: #4C93D4; text-align: center; color: white; white-space: nowrap; }.dsw-dbClick { cursor:pointer; text-decoration:underline; color:blue; }.dsw-corpusAttCntClick { cursor:pointer; text-decoration:underline; color:blue; }.dsw-corpusClick { cursor:pointer; text-decoration:underline; color:blue; }.dsw-attCntClick { cursor:pointer; text-decoration:underline; color:blue; }</style>
       <script>
-
          window.addEventListener('load', function () {
 
          function strip_html_tags(str)
@@ -24,11 +23,6 @@
          else
             str = str.toString();
          return str.replace(/<[^>]*>/g, '');
-         }
-
-         function escapeHtml(unsafe) {
-            return unsafe
-                  .replace(/&/g, "&amp;");
          }
 
             DocuSkyObj = docuskyManageDbListSimpleUI;
@@ -182,7 +176,7 @@
                         filename = "DefaultXML";
                      }
                      saveAs(blob, filename + '.xml');
-                     this.reInit();      
+                     //this.reInit();      
                   },
                   async buildJson() {
                      var promises = [];
@@ -219,6 +213,9 @@
                   nextPage() {
                      this.currentPage += 1;
                      this.getResources(this.selectedCollection, this.currentPage);
+                  },
+                  openDialog() {
+                     $( "#dialog" ).dialog( "open" );
                   },
                   prevPage() {
                      this.currentPage -= 1;
@@ -337,7 +334,7 @@
          <tbody>
                <tr>
                   <td width="120" style="font-size:120%"><b>DocuSky</b><span style="font-size:60%;vertical-align:sub">BETA</span></td>
-                  <td><span style="font-size:110%">從 <a href="https://rise.mpiwg-berlin.mpg.de" target="_blank">RISE</a> 下載全文，組成 DocuXml 並可上載建庫的小工具</span></td>
+                  <td><span style="font-size:110%">從 <a href="https://rise.mpiwg-berlin.mpg.de" target="_blank">RISE</a>下載全文，組成 DocuXml 並可上載建庫的小工具&nbsp;<button @click="openDialog">About RISE & SHINE</button></span></td>
                   <td align="right">
                   <a class="topAnchor" href="http://docusky.org.tw/DocuSky/">首頁</a> 
                   <span class="topAnchorSeparator">|</span> <a class="topAnchor" href="http://docusky.org.tw/DocuSky/docuTools/userMain/">我的資料庫</a>
@@ -346,6 +343,16 @@
             </tbody>
          </table>
       </div>
+      <script>
+         $( function() {
+            $( "#dialog" ).dialog({
+               autoOpen: false
+            });
+         });      
+      </script>
+      <div id="dialog" title="Information about RISE">
+         <p>RISE Info in Chinese</p>
+       </div>
       <div style="padding:5px;">
          <table>
          <tbody>
