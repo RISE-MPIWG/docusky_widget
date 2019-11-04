@@ -6,7 +6,6 @@
       <script src="./js/FileSaver.min.js"></script>
       <script src="./js/jquery-ui.min.js"></script>
       <script src="./js/jquery.csv.js"></script>
-   
       <script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/xmlwriter@1.0.2/XMLWriter.min.js"></script>
       <link href="./js/jquery-ui.min.css" rel="stylesheet">
@@ -29,13 +28,13 @@
             $(document).on('click','#manageDbList',function(e){
                DocuSkyObj.manageDbList(e);
             });
-            
+
             Vue.component('selectCollection', {
                template: `<select v-bind:value="value" @input="$emit('input', $event.target.value)"><option value='0'>Filter by Collection</option><option v-for="collection in collections" v-bind:value="collection.uuid">{{ collection["name"] }}</option></select>`,
                props: {
                   value: String,
                   collections: Array
-                  
+
                },
                watch: {
 		            value: function(newValue){
@@ -54,11 +53,11 @@
                      return Math.ceil((this.current/this.goal) * 100);
                   }
                },
-               
+
                props: {
                   'current': Number,
                   'goal': Number
-               
+
                },
                watch: {
 		            value: function(newValue){
@@ -111,6 +110,7 @@
                },
                created(){
                   rise.init.setRemote();
+                  rise.init.setFormat();
                   this.getCollections();
                   this.getResources();
 
@@ -155,7 +155,17 @@
                                  xw.writeComment('document');
                                  xw.writeStartElement('document');
                                     xw.writeElementString('corpus', this.getCollectionName(resource.collectionUuid));
-                                    xw.writeAttributeString( 'filename', resource['name']);
+                                    xw.writeAttributeString( 'filename', resource['name'])
+                                    Object.entries(resource['metadata']).forEach((entry) => {
+                                      if(typeof entry[1] === 'object') {
+                                        Object.entries(entry[1]).forEach((ent) => {
+                                          xw.writeElementString(ent[0], ent[1])
+                                        })
+                                      }
+                                      else {
+                                        xw.writeElementString(entry[0], entry[1])
+                                      }
+                                    });
                                     xw.writeStartElement('doc_content');
                                     for(const section of resource['sections']){
                                        for(const content_unit of section['content_units']) {
@@ -176,15 +186,20 @@
                         filename = "DefaultXML";
                      }
                      saveAs(blob, filename + '.xml');
-                     //this.reInit();      
+                     //this.reInit();
                   },
                   async buildJson() {
                      var promises = [];
                      var tempResources = [];
+                     console.log(this.selectedResources)
                      for(const resource of this.selectedResources) {
                         resourceForExport = { ...resource, sections: [] };
                         promises.push(await rise.resources.sections(resource.uuid, {per_page: 6000}).then(response => {
                            resourceForExport['sections'] = response.body;
+                           /* tempResources.push(resourceForExport); */
+                        }));
+                        promises.push(await rise.resources.metadata(resource.uuid).then(response => {
+                           resourceForExport['metadata'] = response.body;
                            tempResources.push(resourceForExport);
                         }));
                      }
@@ -248,16 +263,16 @@
                }
             });
          })
-      </script>   
+      </script>
       <style type="text/css">
          [v-cloak] {display: none}
-         body { 
+         body {
                margin:0; line-height:160%; }
          div.headerBar { background-color:rgb(41,60,65); color:white; padding:8px; text-align: center; }
          table.headerBar { color:rgb(205,174,94); }
          div.contentArea { padding: 12px; }
          table.selectTexts { padding:5px; border:3px solid rgb(180,123,47); background-color:rgb(180,123,47); border-radius:5px; }
-         span.butBuildDb { padding:5px; background-color:rgb(122,23,30); color:rgb(205,174,94); 
+         span.butBuildDb { padding:5px; background-color:rgb(122,23,30); color:rgb(205,174,94);
                            border-radius:3px; cursor:pointer; }
          div.sampleFilesArea { padding:6px; border:3px solid rgb(180,123,47); background-color:rgb(180,123,47); border-radius:4px; }
          a:visited, a:link { color:rgb(122,23,30); }
@@ -266,7 +281,7 @@
          textarea { resize:none; background-color:rgb(205,174,94); border:2px solid rgb(126,102,80); }
          input#selectInFile { background-color:rgb(180,123,47); }
          span.bookTitle { font-size:80%; margin:10px; padding:6px; margin-bottom:20px; page-break-inside:avoid;  }
-         
+
          td.textTitles:nth-child(2n) { background-color:#DFDFFF; }
          td.textTitles:nth-child(2n+1) { background-color:#DFFFDF; }
          span.selectedBook { font-size:80%; margin:2px; padding:2px; border:1px solid black; }
@@ -288,7 +303,7 @@
             background: #96438A;
             width: 0%;
          }
-         
+
          .linear-gradient-headerBar {
             background-color: rgb(41,60,65);
             background-image: -webkit-linear-gradient(left, #778899, rgba(41,60,65,0.8));
@@ -297,7 +312,7 @@
             background-image: -ms-linear-gradient(left, #778899, rgba(41,60,65,0.8));
             background-image: linear-gradient(to left, #778899, rgba(41,60,65,0.8));
          }
-         
+
          .linear-gradient-InputSelection {
             background-color: rgb(180,123,47);
             background: radial-gradient(rgb(205,174,94,0.9), rgba(205,174,94,0.1));
@@ -324,7 +339,7 @@
             float: left;
             margin: 0 5px 0 0;
          }
-         
+
    </style>
    </head>
    <body cz-shortcut-listen="true">
@@ -336,7 +351,7 @@
                   <td width="120" style="font-size:120%"><b>DocuSky</b><span style="font-size:60%;vertical-align:sub">BETA</span></td>
                   <td><span style="font-size:110%">從 <a href="https://rise.mpiwg-berlin.mpg.de" target="_blank">RISE</a>下載全文，組成 DocuXml 並可上載建庫的小工具&nbsp;<button @click="openDialog">About RISE & SHINE</button></span></td>
                   <td align="right">
-                  <a class="topAnchor" href="http://docusky.org.tw/DocuSky/">首頁</a> 
+                  <a class="topAnchor" href="http://docusky.org.tw/DocuSky/">首頁</a>
                   <span class="topAnchorSeparator">|</span> <a class="topAnchor" href="http://docusky.org.tw/DocuSky/docuTools/userMain/">我的資料庫</a>
                   </td>
                </tr>
@@ -348,7 +363,7 @@
             $( "#dialog" ).dialog({
                autoOpen: false
             });
-         });      
+         });
       </script>
       <div id="dialog" title="Information about RISE">
          <p>RISE Info in Chinese</p>
