@@ -155,17 +155,17 @@
                                  xw.writeComment('document');
                                  xw.writeStartElement('document');
                                     xw.writeElementString('corpus', this.getCollectionName(resource.collectionUuid));
-                                    xw.writeAttributeString( 'filename', resource['name'])
-                                    Object.entries(resource['metadata']).forEach((entry) => {
-                                      if(typeof entry[1] === 'object') {
-                                        Object.entries(entry[1]).forEach((ent) => {
-                                          xw.writeElementString(ent[0], ent[1])
-                                        })
-                                      }
-                                      else {
-                                        xw.writeElementString(entry[0], entry[1])
-                                      }
-                                    });
+                                    xw.writeAttributeString( 'filename', resource['name']);
+                                    // Object.entries(resource['metadata']).forEach((entry) => {
+                                    //   if(typeof entry[1] === 'object') {
+                                    //     Object.entries(entry[1]).forEach((ent) => {
+                                    //       xw.writeElementString(ent[0], ent[1])
+                                    //     })
+                                    //   }
+                                    //   else {
+                                    //     xw.writeElementString(entry[0], entry[1])
+                                    //   }
+                                    // });
                                     xw.writeStartElement('doc_content');
                                     for(const section of resource['sections']){
                                        for(const content_unit of section['content_units']) {
@@ -196,12 +196,12 @@
                         resourceForExport = { ...resource, sections: [] };
                         promises.push(await rise.resources.sections(resource.uuid, {per_page: 6000}).then(response => {
                            resourceForExport['sections'] = response.body;
-                           /* tempResources.push(resourceForExport); */
-                        }));
-                        promises.push(await rise.resources.metadata(resource.uuid).then(response => {
-                           resourceForExport['metadata'] = response.body;
                            tempResources.push(resourceForExport);
                         }));
+                        // promises.push(await rise.resources.metadata(resource.uuid).then(response => {
+                        //    resourceForExport['metadata'] = response.body;
+                        //    tempResources.push(resourceForExport);
+                        // }));
                      }
                      await Promise.all(promises);
                      promises = [];
